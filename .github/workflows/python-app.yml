@@ -1,0 +1,33 @@
+name: Upload Python Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check repository owner
+        run: |
+          if [ "${{ github.repository_owner }}" != "gardner" ]; then
+            echo "Error: This workflow can only run in the 'gardner' repository."
+            exit 1
+          fi
+        shell: bash
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          sed -i 's/name = "crewai"/name = "crewai-clean"/g' pyproject.toml
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build package
+        run: python -m build
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@81e9d935c883d0b210363ab89cf05f3894778450
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
