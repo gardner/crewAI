@@ -42,7 +42,11 @@ class Telemetry:
         self.ready = False
         self.trace_set = False
         try:
+            if os.environ.get("CREWAI_TELEMETRY_OPT_OUT", False):
+                return
+
             telemetry_endpoint = "https://telemetry.crewai.com:4319"
+
             self.resource = Resource(
                 attributes={SERVICE_NAME: "crewAI-telemetry"},
             )
@@ -256,9 +260,11 @@ class Telemetry:
                                 "async_execution?": task.async_execution,
                                 "output": task.expected_output,
                                 "agent_role": task.agent.role if task.agent else "None",
-                                "context": [task.description for task in task.context]
-                                if task.context
-                                else "None",
+                                "context": (
+                                    [task.description for task in task.context]
+                                    if task.context
+                                    else "None"
+                                ),
                                 "tools_names": [
                                     tool.name.casefold() for tool in task.tools
                                 ],
